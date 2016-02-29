@@ -1,4 +1,4 @@
-/*global brackets, define, $ */
+/*global brackets, define, $, console */
 define(function (require, exports, module) {
     'use strict';
 
@@ -183,14 +183,12 @@ define(function (require, exports, module) {
         }
     }
 
-
-    function compileWithOptions(options, directory) {
-        var i = 0,
-            l = 0;
-
+    function checkLintErrors(callback) {
+        console.log(forceCompile);
         if ($('#status-inspection').hasClass('inspection-errors') && !forceCompile) {
             toolbarIcon.setAttribute('class', 'error');
             statusIcon.setAttribute('class', 'error');
+            panelLog.empty();
             appendLog('WARNING: Please fix all JSLint errors before compiling.');
             bottomPanel.show();
             //            Dialogs.showModalDialog(DefaultDialogs.DIALOG_ID_INFO, "Warning", "Please fix all JSLint Error before compiling.");
@@ -198,20 +196,28 @@ define(function (require, exports, module) {
         } else {
             forceCompile = false;
         }
+        callback();
+    }
 
-        if (options.outputs) {
-            // Compile each output in options
-            l = options.outputs.length;
-            appendLog('Found ' + l + ' outputs');
-            for (i = 0; i < l; i += 1) {
-                appendLog('Generating ' + options.outputs[i].output);
-                getContentsFrom(options.outputs[i], directory, [], 0);
+    function compileWithOptions(options, directory) {
+        var i = 0,
+            l = 0;
+
+        checkLintErrors(function () {
+            if (options.outputs) {
+                // Compile each output in options
+                l = options.outputs.length;
+                appendLog('Found ' + l + ' outputs');
+                for (i = 0; i < l; i += 1) {
+                    appendLog('Generating ' + options.outputs[i].output);
+                    getContentsFrom(options.outputs[i], directory, [], 0);
+                }
+            } else {
+                // Compile with old single output option format
+                appendLog('Generating ' + options.output);
+                getContentsFrom(options, directory, [], 0);
             }
-        } else {
-            // Compile with old single output option format
-            appendLog('Generating ' + options.output);
-            getContentsFrom(options, directory, [], 0);
-        }
+        });
 
     }
 
@@ -250,7 +256,9 @@ define(function (require, exports, module) {
                                 // Options not found. Try to compile current file
                                 appendLog('No options file. Compiling current script');
                                 if (ext === 'js') {
-                                    doUglify([{name: currentFile.name, content: DocumentManager.getCurrentDocument().getText()}], currentFile.name.replace(/\.js$/, '.min.js'), undefined, directory);
+                                    checkLintErrors(function () {
+                                        doUglify([{name: currentFile.name, content: DocumentManager.getCurrentDocument().getText()}], currentFile.name.replace(/\.js$/, '.min.js'), undefined, directory);
+                                    });
                                 } else {
                                     // Current file is not JavaScript. Warn!
                                     appendLog('Current document is not JavaScript');
