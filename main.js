@@ -426,11 +426,15 @@ define(function (require, exports, module) {
     automaton.setChecked(prefs.get("on-save"));
 
     // Start bottom panel
-    bottomPanel = WorkspaceManager.createBottomPanel('jscompiler.panel', $('<div id="jscompiler-panel" class="bottom-panel vert-resizable top-resizer" style="box-sizing: border-box; height: 200px; display: block;"><div class="toolbar simple-toolbar-layout"><div class="title">JSCompiler</div> <button class="compile auto">Auto-compile</button> <button class="compile now">Compile now</button> <a href="#" class="close">×</a></div><div id="log" class="table-container resizable-content" style="height: 170px"></div></div></div>'));
+    bottomPanel = WorkspaceManager.createBottomPanel('jscompiler.panel', $('<div id="jscompiler-panel" class="bottom-panel vert-resizable top-resizer" style="box-sizing: border-box; height: 200px; display: block;"><div class="toolbar simple-toolbar-layout"><div class="title">JSCompiler</div> <button class="compile auto">Auto-compile</button> <button class="compile now">Compile now</button> <button class="compile force">Force Compile</button> <a href="#" class="close">×</a></div><div id="log" class="table-container resizable-content" style="height: 170px"></div></div></div>'));
     panelLog = bottomPanel.$panel.find('#log');
     bottomPanel.$panel.find('.close').on('click', closePanel);
     bottomPanel.$panel.find('.compile.auto').click(toggleAutoCompile);
     bottomPanel.$panel.find('.compile.now').click(compileJS);
+    bottomPanel.$panel.find('.compile.force').click(function () {
+        forceCompile = true;
+        compileJS();
+    });
 
     // Load css
     ExtensionUtils.loadStyleSheet(module, 'styles/main.css');
